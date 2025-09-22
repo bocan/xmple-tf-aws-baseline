@@ -1,0 +1,60 @@
+repos:
+- repo: https://github.com/gitleaks/gitleaks
+  rev: v8.28.0
+  hooks:
+    - id: gitleaks
+      name: "🔒 security · Detect hardcoded secrets"
+      args: ['--verbose']
+- repo: https://github.com/pre-commit/pre-commit-hooks
+  rev: v6.0.0
+  hooks:
+    - id: check-merge-conflict
+      name: "🌳 git · Detect conflict markers"
+    - id: check-yaml
+      name: "🌳 git · Check YAML Files"
+      args:
+        - --multi
+    - id: check-added-large-files
+      name: "🌳 git · Block large file commits"
+      args: ['--maxkb=5000']
+    - id: trailing-whitespace
+      name: "🌳 git · Check For Trailing Whitespace"
+      args: [ --markdown-linebreak-ext=md ]
+    - id: end-of-file-fixer
+      name: "🌳 git · Check End-Of-Files"
+    - id: mixed-line-ending
+      name: "🌳 git · Check For Mixed Line Ending"
+      args: ['--fix=lf']
+- repo: https://github.com/antonbabenko/pre-commit-terraform
+  rev: v1.100.0
+  hooks:
+    - id: terraform_providers_lock
+      name: "Ⓣ  terraform · Check Terraform Providers Lock File"
+      args:
+        - --hook-config=--tf-path=terraform
+        - --hook-config=--mode=only-check-is-current-lockfile-cross-platform
+        - --args=-platform=linux_amd64
+        - --args=-platform=darwin_arm64
+    - id: terraform_docs
+      name: "Ⓣ  terraform · Generate documentation"
+      args:
+        - --args=--lockfile=false
+    - id: terraform_fmt
+      name: "Ⓣ  terraform · Format Terraform Files"
+      args:
+        - --hook-config=--tf-path=terraform
+    - id: terraform_validate
+      name: "Ⓣ  terraform · Validate Terraform Files"
+      args:
+        - --hook-config=--tf-path=terraform
+    - id: terraform_tflint
+      name: "Ⓣ  terraform · Lint Terraform Files"
+      args:
+        - --args=--recursive
+    - id: terraform_checkov
+      name: "Ⓣ  terraform · Checkov scan for Terraform Files"
+      args:
+        - --args=--var-file terraform.tfvars.example
+        - --args=--skip-path tests
+        - --args=--soft-fail-on MEDIUM
+        - --args=--skip-check CKV_TF_1
