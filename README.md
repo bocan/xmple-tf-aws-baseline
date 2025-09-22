@@ -20,3 +20,8 @@
     - generating Terraform documentation.
     - Terraform validation and linting.
     - Using Checkov to scan for security issues.
+
+### Future Improvements
+
+- Ideally, all these modules should exist in their own repositories to allow us
+  to individually control their versions.
