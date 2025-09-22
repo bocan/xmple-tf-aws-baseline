@@ -16,7 +16,7 @@
 - A Terraform flavoured .gitignore.
 - Pre-commit checks for:
     - style enforcement.
-    - secret detection with [Gitleaks](https://gitleaks.io/).
+    - hard coded secret detection with [Gitleaks](https://gitleaks.io/).
     - generating Terraform documentation.
     - Terraform validation and linting.
     - Using Checkov to scan for security issues.
