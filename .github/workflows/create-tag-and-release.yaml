@@ -27,7 +27,7 @@ jobs:
         run: |
           git config --global url."https://${{ env.GITHUB_USER_TOKEN }}@github.com/".insteadOf ssh://git@github.com/
           git config --global user.email ${{ env.GITHUB_USER_EMAIL }}
-          git config --global user.name ${{ env.GITHUB_USER_NAME }}
+          git config --global user.name ${{ env.GITHUB_USER_UNAME }}
 
       - name: Bump version and push tag
         uses: anothrNick/github-tag-action@v1
