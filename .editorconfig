@@ -40,4 +40,3 @@ indent_style = tab
 
 [COMMIT_EDITMSG]
 max_line_length = 0
-
