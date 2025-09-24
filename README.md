@@ -24,6 +24,7 @@
 ### Issues
 
 - Guardduty should be enabled at the Organisational level.  Not per account.
+
 - The problem parameters don't mention what regions would be in use. For
   simplicity, I've assumed 1 region - whichever the TF is applied in - but in
   production you'd want a list.  Then you could tighten up policies.
