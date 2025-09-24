@@ -1,0 +1,107 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    /* 1) Deny disabling/tampering with CloudTrail */
+    {
+      "Sid": "DenyCloudTrailStopOrDelete",
+      "Effect": "Deny",
+      "Action": [
+        "cloudtrail:StopLogging",
+        "cloudtrail:DeleteTrail",
+        "cloudtrail:UpdateTrail",
+        "cloudtrail:PutEventSelectors"
+      ],
+      "Resource": "*"
+    },
+
+    /* 2) Deny public S3 bucket ACLs & risky public policies (defence-in-depth; pair with S3 PAB) */
+    {
+      "Sid": "DenyPublicS3Acls",
+      "Effect": "Deny",
+      "Action": ["s3:PutBucketAcl"],
+      "Resource": "arn:aws:s3:::*",
+      "Condition": {
+        "ForAnyValue:StringEquals": {
+          "s3:x-amz-acl": ["public-read","public-read-write","authenticated-read"]
+        }
+      }
+    },
+    {
+      "Sid": "DenyMakingBucketPolicyPublicByNonOrgPrincipals",
+      "Effect": "Deny",
+      "Action": ["s3:PutBucketPolicy"],
+      "Resource": "arn:aws:s3:::*",
+      "Condition": {
+        "StringNotEquals": { "aws:PrincipalOrgID": "${org_id}" }
+      }
+    },
+
+    /* 3) Require encryption on create for common storage/services */
+    {
+      "Sid": "RequireS3EncryptedPut",
+      "Effect": "Deny",
+      "Action": ["s3:PutObject"],
+      "Resource": "arn:aws:s3:::*/*",
+      "Condition": {
+        "StringNotEqualsIfExists": { "s3:x-amz-server-side-encryption": "aws:kms" }
+      }
+    },
+    {
+      "Sid": "RequireEbsEncryptedVolumes",
+      "Effect": "Deny",
+      "Action": ["ec2:CreateVolume"],
+      "Resource": "*",
+      "Condition": { "Bool": { "ec2:Encrypted": "false" } }
+    },
+    {
+      "Sid": "RequireRdsEncryptedStorage",
+      "Effect": "Deny",
+      "Action": ["rds:CreateDBInstance","rds:CreateDBCluster"],
+      "Resource": "*",
+      "Condition": { "Bool": { "rds:StorageEncrypted": "false" } }
+    },
+    {
+      "Sid": "RequireOpenSearchEncryptionAtRest",
+      "Effect": "Deny",
+      "Action": ["es:CreateDomain"],
+      "Resource": "*",
+      "Condition": { "Bool": { "es:EncryptionEnabled": "false" } }
+    },
+
+    /* 4) Restrict regions */
+    {
+      "Sid": "DenyUnsupportedRegions",
+      "Effect": "Deny",
+      "Action": "*",
+      "Resource": "*",
+      "Condition": {
+        "StringNotEquals": { "aws:RequestedRegion": ${jsonencode(allowed_regions)} }
+      }
+    },
+
+    /* 5) Protect the logs KMS key from disable/delete */
+    {
+      "Sid": "ProtectLogKmsKey",
+      "Effect": "Deny",
+      "Action": [
+        "kms:DisableKey",
+        "kms:ScheduleKeyDeletion",
+        "kms:DisableKeyRotation"
+      ],
+      "Resource": "${protect_kms_key_arn}"
+    },
+
+    /* Extra) Deny callers outside this Organization (but allow AWS services) */
+    {
+      "Sid": "DenyPrincipalsOutsideThisOrg",
+      "Effect": "Deny",
+      "Action": "*",
+      "Resource": "*",
+      "Condition": {
+        "StringNotEquals": { "aws:PrincipalOrgID": "${org_id}" },
+        "BoolIfExists":    { "aws:PrincipalIsAWSService": "false" }
+      }
+    }
+
+  ]
+}

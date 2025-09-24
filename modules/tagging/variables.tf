@@ -1,4 +1,9 @@
-variable "required_tags" {
+variable "target_id" {
+  type        = string
+  description = "Organizations target to attach policy (OU id or account id)"
+}
+
+variable "required_tag_keys" {
   type        = list(string)
-  description = "List of tag keys required at create time."
+  description = "Tag keys that must be present on resource creation"
 }
