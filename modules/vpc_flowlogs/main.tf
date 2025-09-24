@@ -43,7 +43,7 @@ resource "aws_s3_bucket_public_access_block" "flow" {
   ignore_public_acls      = true
 }
 
-# Lifecycle (entire bucket) + abort incomplete MPU — aligns with Checkov expectations
+# Lifecycle (entire bucket) + abort incomplete MPU - aligns with Checkov expectations
 resource "aws_s3_bucket_lifecycle_configuration" "flow" {
   count  = local.is_sink ? 1 : 0
   bucket = aws_s3_bucket.flow[0].id
