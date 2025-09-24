@@ -54,7 +54,4 @@ repos:
     - id: terraform_checkov
       name: "Ⓣ  terraform · Checkov scan for Terraform Files"
       args:
-        - --args=--var-file terraform.tfvars.example
         - --args=--skip-path tests
-        - --args=--soft-fail-on MEDIUM
-        - --args=--skip-check CKV_TF_1
