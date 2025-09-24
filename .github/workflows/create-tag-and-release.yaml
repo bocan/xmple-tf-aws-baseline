@@ -3,11 +3,15 @@ on:
   push:
     branches:
       - main
+    paths:
+      - '**/*.tf'
+      - '**/*.tmpl'
+      - '.pre-commit-config.yaml'
 
 name: create-tag-and-release
 
 permissions:
-  contents: read
+  contents: write
 
 env:
   GITHUB_USER_TOKEN: ${{ secrets.USER_TOKEN }}
@@ -17,11 +21,53 @@ env:
 jobs:
   tag-and-release:
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
         with:
           fetch-depth: '0'
+
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.13.3
+
+      - name: Cache Stuff
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cache
+            ~/.asdf
+          key: pre-commit-${{ runner.os }}-${{ hashFiles('.pre-commit-config.yaml') }}
+          restore-keys: |
+            pre-commit-${{ runner.os }}-
+
+      - name: Cache Terraform plugin dir
+        uses: actions/cache@v4
+        with:
+          path: ~/.terraform.d/plugin-cache
+          key: tfplugin-${{ runner.os }}-${{ hashFiles('**/.terraform.lock.hcl', '**/versions.tf') }}
+          restore-keys: |
+            tfplugin-${{ runner.os }}-
+
+      - name: Enable plugin cache
+        run: echo 'plugin_cache_dir="~/.terraform.d/plugin-cache"' >> ~/.terraformrc
+
+      - name: Install asdf version manager
+        uses: asdf-vm/actions/install@v4
+
+      - name: Run pre-commit checks on all files
+        run: pre-commit run --all-files
+
+      # If the pre-commit fails - it won't carry on to tagging
 
       - name: Configure Git Credentials
         run: |

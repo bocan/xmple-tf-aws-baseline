@@ -5,12 +5,17 @@ permissions: read-all
 on:
   pull_request:
     types: [opened, synchronize, reopened, ready_for_review]
+    paths:
+      - '**/*.tf'
+      - '**/*.tmpl'
+      - '.pre-commit-config.yaml'
   workflow_dispatch:
 
 jobs:
   pre-commit:
     name: Run pre-commit checks
     runs-on: ubuntu-latest
+    timeout-minutes: 30
 
     steps:
       - name: Checkout code
@@ -21,6 +26,10 @@ jobs:
         with:
           python-version: '3.13'
 
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.13.3
+
       - name: Cache Stuff
         uses: actions/cache@v4
         with:
@@ -30,6 +39,17 @@ jobs:
           key: pre-commit-${{ runner.os }}-${{ hashFiles('.pre-commit-config.yaml') }}
           restore-keys: |
             pre-commit-${{ runner.os }}-
+
+      - name: Cache Terraform plugin dir
+        uses: actions/cache@v4
+        with:
+          path: ~/.terraform.d/plugin-cache
+          key: tfplugin-${{ runner.os }}-${{ hashFiles('**/.terraform.lock.hcl', '**/versions.tf') }}
+          restore-keys: |
+            tfplugin-${{ runner.os }}-
+
+      - name: Enable plugin cache
+        run: echo 'plugin_cache_dir="~/.terraform.d/plugin-cache"' >> ~/.terraformrc
 
       - name: Install asdf version manager
         uses: asdf-vm/actions/install@v4
