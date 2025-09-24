@@ -3,10 +3,6 @@ on:
   push:
     branches:
       - main
-    paths:
-      - '**/*.tf'
-      - '**/*.tmpl'
-      - '.pre-commit-config.yaml'
 
 name: create-tag-and-release
 

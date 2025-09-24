@@ -5,10 +5,6 @@ permissions: read-all
 on:
   pull_request:
     types: [opened, synchronize, reopened, ready_for_review]
-    paths:
-      - '**/*.tf'
-      - '**/*.tmpl'
-      - '.pre-commit-config.yaml'
   workflow_dispatch:
 
 jobs:
