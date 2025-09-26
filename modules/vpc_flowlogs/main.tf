@@ -3,9 +3,7 @@ locals {
   is_source = lower(var.mode) == "source"
 }
 
-############################
 # SINK MODE (Logging account)
-############################
 resource "aws_s3_bucket" "flow" {
   count  = local.is_sink ? 1 : 0
   bucket = var.bucket_name
@@ -239,9 +237,8 @@ resource "aws_s3_bucket_replication_configuration" "flow" {
   }
 }
 
-############################
 # SOURCE MODE (App account)
-############################
+
 # Delivery role that the VPC Flow Logs service assumes
 resource "aws_iam_role" "delivery" {
   count = local.is_source ? 1 : 0
