@@ -1,11 +1,7 @@
-############################################
 # Data: who am I (account id is used in KMS policies)
-############################################
 data "aws_caller_identity" "this" {}
 
-############################################
 # Logs CMK: for CloudWatch Logs encryption
-############################################
 resource "aws_kms_key" "logs" {
   description             = "App account: CMK for CloudWatch Logs encryption"
   enable_key_rotation     = true
@@ -47,9 +43,7 @@ resource "aws_kms_alias" "logs" {
   target_key_id = aws_kms_key.logs.key_id
 }
 
-############################################
 # EBS Default CMK: used as the account default for EBS encryption
-############################################
 resource "aws_kms_key" "ebs" {
   description             = "App account: CMK for default EBS encryption"
   enable_key_rotation     = true
@@ -98,9 +92,7 @@ resource "aws_ebs_default_kms_key" "default" {
   key_arn = aws_kms_key.ebs.arn
 }
 
-############################################
 # Optional Data CMK: for common service-integrated encryption
-############################################
 resource "aws_kms_key" "data" {
   count                   = var.enable_optional_data_kms ? 1 : 0
   description             = "App account: CMK for application data (S3/RDS/DynamoDB/OpenSearch/SNS/SQS/Lambda)"

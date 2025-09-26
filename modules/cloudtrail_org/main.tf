@@ -1,10 +1,7 @@
-###########################
 # Data: current account (module runs in the Security account)
-###########################
 # Using the module's provider context
 data "aws_caller_identity" "this" {}
 
-###########################
 # S3: access logs bucket
 # - versioned
 # - ownership enforced (no ACLs)
@@ -12,7 +9,6 @@ data "aws_caller_identity" "this" {}
 # - public access block
 # - lifecycle (with abort for multipart uploads)
 # - (optional) notifications to same SNS topic
-###########################
 resource "aws_s3_bucket" "access_logs" {
   #checkov:skip=CKV_AWS_144:S3 cross-region replication is out-of-scope.
   bucket = var.access_logs_bucket_name
@@ -72,7 +68,6 @@ resource "aws_s3_bucket_lifecycle_configuration" "access_logs" {
   }
 }
 
-###########################
 # S3: main CloudTrail bucket
 # - ownership enforced
 # - versioning
@@ -80,7 +75,6 @@ resource "aws_s3_bucket_lifecycle_configuration" "access_logs" {
 # - public access block
 # - lifecycle rule + abort for multipart
 # - access logging -> access_logs bucket
-###########################
 resource "aws_s3_bucket" "trail" {
   bucket = var.bucket_name
 }
@@ -144,20 +138,16 @@ resource "aws_s3_bucket_logging" "trail" {
   target_prefix = "s3-access-logs/"
 }
 
-###########################
 # SNS topic for CloudTrail delivery (KMS-encrypted using provided key)
 # - encryption at rest
 # - allows other accounts/services to publish as needed (tighten policy later)
-###########################
 resource "aws_sns_topic" "trail_notifications" {
   name              = "cloudtrail-delivery"
   kms_master_key_id = var.sns_kms_key_arn
 }
 
-###########################
 # S3 bucket notifications - send object created events to the SNS topic
 # (both trail and access_logs get notifications so checks are happy)
-###########################
 resource "aws_s3_bucket_notification" "trail_events" {
   bucket = aws_s3_bucket.trail.id
 
@@ -176,11 +166,9 @@ resource "aws_s3_bucket_notification" "access_logs_events" {
   }
 }
 
-###########################
 # CloudWatch Logs group + IAM role for CloudTrail -> CloudWatch streaming
 # - retention set to var.cloudwatch_log_retention_days (>= 365 recommended)
 # - CMK for encrypting log group is provided by caller
-###########################
 resource "aws_cloudwatch_log_group" "trail" {
   name              = var.cloudwatch_log_group_name
   retention_in_days = var.cloudwatch_log_retention_days
@@ -216,11 +204,9 @@ resource "aws_iam_role_policy" "cloudtrail_to_cw" {
   })
 }
 
-###########################
 # S3 bucket policy to allow CloudTrail service to PutObject
 # - requires x-amz-acl = bucket-owner-full-control
 # - restricts source account (this Security account)
-###########################
 resource "aws_s3_bucket_policy" "trail" {
   bucket = aws_s3_bucket.trail.id
 
@@ -244,11 +230,9 @@ resource "aws_s3_bucket_policy" "trail" {
   })
 }
 
-###########################
 # Optional: Cross-region replication (CRR)
 # - Only created when enable_crr = true
 # - Assumes destination bucket exists and we pass its ARN
-###########################
 resource "aws_iam_role" "crr" {
   count = var.enable_crr ? 1 : 0
   name  = "CloudTrailBucketReplicationRole"
@@ -314,11 +298,9 @@ resource "aws_s3_bucket_replication_configuration" "trail" {
   }
 }
 
-###########################
 # CloudTrail (org trail) resource
 # - encrypted with provided KMS
 # - configured to stream to CloudWatch Logs and publish notifications to SNS
-###########################
 resource "aws_cloudtrail" "org" {
   name                          = "organization-trail"
   is_organization_trail         = true
